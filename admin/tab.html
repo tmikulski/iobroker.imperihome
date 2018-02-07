@@ -1,0 +1,432 @@
+<html>
+<header>
+    <!-- these 4 files always have to be included -->
+    <link rel="stylesheet" type="text/css" href="../../lib/css/themes/jquery-ui/default/jquery-ui.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../../lib/css/fancytree/ui.fancytree.min.css"/>
+
+    <script type="text/javascript" src="../../lib/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../../lib/js/jquery-ui-1.11.4.full.min.js"></script>
+    <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="../../lib/js/loStorage.js"></script>
+    <script type="text/javascript" src="../../lib/js/translate.js"></script>
+    <script type="text/javascript" src="words.js"></script>
+    <script type="text/javascript" src="../../lib/js/colResizable-1.5.min.js"></script>
+
+    <script type="text/javascript" src="../../lib/js/jquery.fancytree-all.min.js"></script>
+    <script type="text/javascript" src="../../lib/js/selectID.js"></script>
+
+
+    <style scoped>
+        body {
+            font-size: 11px;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: tahoma, arial, helvetica;
+        }
+        .no-space {
+            border: 0 !important;
+            margin: 0;
+            padding: 0;
+            border-spacing: 0;
+            border-image-width: 0;
+        }
+        .scene-line-true, .scene-line-false {
+            background: lightgrey;
+        }
+        #tab-rules-body td {
+            vertical-align: bottom;
+        }
+        .tr-even {
+            background-color: #dddddd;
+        }
+        .tr-odd {
+            background-color: #ececec;
+        }
+        #grid-rules tr {
+            border-spacing: 0;
+        }
+        .toast {
+            font-size: large;
+            position: absolute;
+            top: 30px;
+            left: 100px;
+            background: darkgrey;
+            color: white;
+            padding: 20px;
+            border: 1px solid white;
+            border-radius: 10px;
+            display: none;
+            opacity: 0.9;
+        }
+    </style>
+
+</header>
+<body>
+    <div id="tab-rules">
+        <table><tr>
+            <td></td>
+            <td><button id="btn_refresh"  class="translateT" title="Refresh"></button></td> 
+            <td><button id="btn_new_device"       class="translateT" title="new device"></button></td>
+            <td><button id="btn_save_settings"  class="translateT" title="save settings"></button></td> 
+			<td style="width: 100%"></td>
+            <td><button id="btn_open_rooms" title="Show advanced settings" class="translateT"></button></td>
+        </tr></table>
+        <div id="process_running" class="translate" style="position:absolute; top:50%; left:50%; width: 150px; height: 25px; padding: 12px; background: rgba(30, 30, 30, 0.5); display: none; text-align:center; font-size: 1.2em; color: white; font-weight: bold; border-radius: 5px">Processing...</div>
+        
+		<div style="width:100%; height:400px; overflow-y: auto" id="grid-rules-div">
+            <table id="grid-rules" style="width: calc(100% - 20px); table-layout: fixed;">
+            <colgroup>
+                <col width="50px"/>
+                <col width="*"/>
+                <col width="200px"/>
+                <col width="200px"/>
+                <col width="200px"/>
+                <!--col width="100px"/-->
+                <col width="25px"/>
+                <col width="25px"/>
+                <col width="25px"/>
+            </colgroup>
+            <thead>
+            <tr>
+                <th class="translate ui-widget-header">L.p.</th>
+                <th class="translateT ui-widget-header" title="Name"><span class="translate">Name</span></th>
+                <th class="translateT ui-widget-header" title="ID"><span class="translate">ID</span></th>
+                <th class="translate ui-widget-header">Type</th>
+                <th class="translate ui-widget-header">Room</th>
+                <th class="translate ui-widget-header" colspan="3"></th>
+            </tr>
+            </thead>
+            <tbody id="tab-rules-body"></tbody>
+        </table></div>
+    </div>
+
+    <div id="dialog-message" title="Message"  style="display: none">
+        <p>
+            <span id="dialog-message-icon" class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+            <span id="dialog-message-text"></span>
+        </p>
+    </div>
+    <div id="dialog-confirm" title="Question" style="display: none">
+        <p>
+            <span id="dialog-confirm-icon" class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+            <span id="dialog-confirm-text"></span>
+        </p>
+    </div>
+
+    <div id="dialog-rooms" title="Rooms" class="translateT" style="display: none">
+        <table>
+			<tr>
+                <td><label class="translate" for="input_id_room">ID:</label></td>
+                <td><input id="input_id_room" style="width: 250px; margin-right: 3px"/><button id="btn_input_id_room_clear" class="translateT" title="new device"></button></td>
+            </tr>
+			<tr>
+                <td><label class="translate" for="input_name_room">Name:</label></td>
+                <td><input id="input_name_room" style="width: 250px; margin-right: 3px"/><button id="btn_input_name_room_clear" class="translateT" title="new device"></button></td>
+            </tr>
+            <tr>
+                <td><button id="btn_save_room"  class="translateT" title="Save room"><label>Save</label></button></td>
+                <td><button id="btn_del_room"  class="translateT" title="Delete room"><label>Delete</label></button></td>
+            </tr>            
+        </table>
+		<div>
+			<select id="input_rooms"  style="width: 90%; height:100px;margin-right: 3px" multiple></select>
+		</div>
+    </div>
+	
+    <div id="dialog-device" title="Device" class="translateT" style="display: none">
+        <table>
+			<tr>
+                <td><label class="translate" for="input_id">ID:</label></td>
+                <td><input id="input_id" style="width: 250px; margin-right: 3px"/></td>
+            </tr>
+			<tr>
+                <td><label class="translate" for="input_name">Name:</label></td>
+                <td><input id="input_name" style="width: 250px; margin-right: 3px"/></td>
+            </tr>
+            <tr>
+                <td><label class="translate" for="input_type">Type:</label></td>
+                <td>
+					<select id="input_type"  style="width: 250px; margin-right: 3px">
+						<option value="DevSwitch">DevSwitch</option>
+						<option value="DevDimmer">DevDimmer</option>
+						<option value="DevRGBLight">DevRGBLight</option>
+						<option disabled>──────────</option>
+						<option value="DevTemperature">DevTemperature</option>
+						<option value="DevGenericSensor">DevGenericSensor</option>
+						<option disabled>──────────</option>
+						<option value="DevElectricity">DevElectricity</option>
+						<option disabled>──────────</option>
+						<option value="DevCamera">DevCamera</option>
+						<option disabled>──────────</option>
+						<option value="DevFlood">DevFlood</option>
+						<option value="DevDoor">DevDoor</option>
+						<option value="DevMotion">DevMotion</option>
+						<option value="DevSmoke">DevSmoke</option>
+						<option value="DevCO2Alert">DevCO2Alert</option>
+					</select>
+				</td>
+            </tr>            
+            <tr>
+                <td><label class="translate" for="input_room1">Room:</label></td>
+				<td><select id="input_room1"  style="width: 170px; margin-right: 3px">
+                </select></td>
+            </tr>
+            <tr>
+                <td><label class="translate">Param:</label></td>
+                <td></td>
+            </tr>
+        </table>
+		<!--SWITCH-->
+		<div id="dialog-device-switch" class="translateT" style="display: none">
+			<table>
+				<tr>
+					<td><label class="translate" for="input_switch_pulsable">Pulsable:</label></td>
+					<td><select id="input_switch_pulsable"  style="width: 70px; margin-right: 3px">
+                    <option value="1">YES</option>
+                    <option value="0">NO</option>
+                </select></td>
+				</tr>         
+				<!--<tr>
+					<td><label class="translate" for="input_switch_energy_val">Energy:</label></td>
+					<td>Value:<input id="input_switch_energy_val" style="width: 50px; margin-right: 3px"/> Unit:<input id="input_switch_energy_unit" style="width: 50px; margin-right: 3px"/></td>
+				</tr>-->
+            <tr>
+                <td><label class="translate" for="input_state">State:</label></td>
+                <td><input id="input_state" data-index="switch" style="width: 250px; margin-right: 3px"/><button class="select-id-state" data-index="switch" ></button></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_state_v1">Value:</label></td>
+                <td>For 1:<input id="input_state_v1" data-index="switch" style="width: 100px; margin-right: 3px"/>For 0:<input id="input_state_v0" data-index="switch" style="width: 100px; margin-right: 3px"/></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_cmd">Cmd:</label></td>
+                <td><input id="input_cmd" data-index="switch" style="width: 250px; margin-right: 3px"/><button class="select-id-cmd" data-index="switch" ></button></td>
+            </tr>
+			<tr>
+                <td><label class="translate" for="input_cmd_v1">Value:</label></td>
+                <td>For 1:<input id="input_cmd_v1" data-index="switch" style="width: 100px; margin-right: 3px"/>For 0:<input id="input_cmd_v0" data-index="switch" style="width: 100px; margin-right: 3px"/></td>
+            </tr> 
+			</table>
+		</div>
+		<!--DIMMER-->
+		<div id="dialog-device-dimmer" class="translateT" style="display: none">
+			<table>
+				<td><label class="translate" for="input_level">Level:</label></td>
+                <td><input id="input_level" data-index="dimmer" style="width: 250px; margin-right: 3px"/><button class="select-id-level" data-index="dimmer" ></button></td>
+				<!--<tr>
+					<td><label class="translate" for="input_switch_energy_val">Energy:</label></td>
+					<td>Value:<input id="input_switch_energy_val" style="width: 50px; margin-right: 3px"/> Unit:<input id="input_switch_energy_unit" style="width: 50px; margin-right: 3px"/></td>
+				</tr>-->
+            <tr>
+                <td><label class="translate" for="input_state">State:</label></td>
+                <td><input id="input_state" data-index="dimmer" style="width: 250px; margin-right: 3px"/><button class="select-id-state" data-index="dimmer" ></button></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_state_v1">Value:</label></td>
+                <td>For 1:<input id="input_state_v1" data-index="dimmer" style="width: 100px; margin-right: 3px"/>For 0:<input id="input_state_v0" data-index="dimmer" style="width: 100px; margin-right: 3px"/></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_cmd">Cmd:</label></td>
+                <td><input id="input_cmd" data-index="dimmer" style="width: 250px; margin-right: 3px"/><button class="select-id-cmd" data-index="dimmer" ></button></td>
+            </tr>
+			<tr>
+                <td><label class="translate" for="input_cmd_v1">Value:</label></td>
+                <td>For 1:<input id="input_cmd_v1" data-index="dimmer" style="width: 100px; margin-right: 3px"/>For 0:<input id="input_cmd_v0" data-index="dimmer" style="width: 100px; margin-right: 3px"/></td>
+            </tr> 
+			</table>
+		</div>
+		<!--RGBLight-->
+		<div id="dialog-device-rgb" class="translateT" style="display: none">
+			<table>
+			<tr>
+				<td><label class="translate" for="input_dimmable">Ability to control luminosity:</label></td>
+				<td><select id="input_dimmable" data-index="rgb"  style="width: 70px; margin-right: 3px">
+                    <option value="1">YES</option>
+                    <option value="0">NO</option>
+                </select></td>
+			</tr>   
+			<tr>
+				<td><label class="translate" for="input_whitechannel">Does the light has a white channel:</label></td>
+				<td><select id="input_whitechannel" data-index="rgb"  style="width: 70px; margin-right: 3px">
+                    <option value="1">YES</option>
+                    <option value="0">NO</option>
+                </select></td>
+			</tr>   
+			<tr>
+				<td><label class="translate" for="input_level">Level:</label></td>
+                <td><input id="input_level" data-index="rgb" style="width: 250px; margin-right: 3px"/><button class="select-id-level" data-index="rgb" ></button></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_rgb">RGB String:</label></td>
+                <td><input id="input_rgb" data-index="rgb" style="width: 250px; margin-right: 3px"/><button class="select-id-rgb" data-index="rgb" ></button></td>
+			</tr>
+			<!--<tr>
+					<td><label class="translate" for="input_switch_energy_val">Energy:</label></td>
+					<td>Value:<input id="input_switch_energy_val" style="width: 50px; margin-right: 3px"/> Unit:<input id="input_switch_energy_unit" style="width: 50px; margin-right: 3px"/></td>
+				</tr>-->
+            <tr>
+                <td><label class="translate" for="input_state">State:</label></td>
+                <td><input id="input_state" data-index="rgb" style="width: 250px; margin-right: 3px"/><button class="select-id-state" data-index="rgb" ></button></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_state_v1">Value:</label></td>
+                <td>For 1:<input id="input_state_v1" data-index="rgb" style="width: 100px; margin-right: 3px"/>For 0:<input id="input_state_v0" data-index="rgb" style="width: 100px; margin-right: 3px"/></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_cmd">Cmd:</label></td>
+                <td><input id="input_cmd" data-index="rgb" style="width: 250px; margin-right: 3px"/><button class="select-id-cmd" data-index="rgb" ></button></td>
+            </tr>
+			<tr>
+                <td><label class="translate" for="input_cmd_v1">Value:</label></td>
+                <td>For 1:<input id="input_cmd_v1" data-index="rgb" style="width: 100px; margin-right: 3px"/>For 0:<input id="input_cmd_v0" data-index="rgb" style="width: 100px; margin-right: 3px"/></td>
+            </tr> 
+			</table>
+		</div>
+		<!--DevTemperature-->
+		<div id="dialog-device-temperature" class="translateT" style="display: none">
+			<table>
+			<tr>
+				<td><label class="translate" for="input_graphable">Graphable:</label></td>
+				<td><select id="input_graphable" data-index="temperature"  style="width: 70px; margin-right: 3px" >
+                    <option value="true">YES</option>
+                    <option value="false" selected>NO</option>
+                </select></td>
+			</tr>   			
+			<tr>
+				<td><label class="translate" for="input_temperature">Temperature:</label></td>
+                <td><input id="input_temperature" data-index="temperature" style="width: 250px; margin-right: 3px"/><button class="select-id-temperature" data-index="temperature" ></button></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_unit">Unit:</label></td>
+				<td><select id="input_unit" data-index="temperature"  style="width: 70px; margin-right: 3px">
+                    <option value="°C">°C</option>
+                </select></td>
+			</tr> 
+			</table>
+		</div>
+		<!--DevGenericSensor-->
+		<div id="dialog-device-genericsensor" class="translateT" style="display: none">
+			<table>
+			<tr>
+				<td><label class="translate" for="input_graphable">Graphable:</label></td>
+				<td><select id="input_graphable" data-index="genericsensor"  style="width: 70px; margin-right: 3px" disabled>
+                    <option value="true">YES</option>
+                    <option value="false" selected>NO</option>
+                </select></td>
+			</tr>   			
+			<tr>
+				<td><label class="translate" for="input_value">Value:</label></td>
+                <td><input id="input_value" data-index="genericsensor" style="width: 250px; margin-right: 3px"/><button class="select-id-value" data-index="genericsensor" ></button></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_unit">Unit:</label></td>
+				<td><input id="input_unit" data-index="genericsensor" style="width: 250px; margin-right: 3px"/></td>
+			</tr> 
+			</table>
+		</div>
+		<!--DevCamera-->
+		<div id="dialog-device-camera" class="translateT" style="display: none">
+			<table>
+			<tr>
+				<td><label class="translate" for="input_localjpegurl">Local URL to the JPEG snapshot:</label></td>
+                <td><input id="input_localjpegurl" data-index="camera" style="width: 250px; margin-right: 3px"/></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_localmjpegurl">Local URL to the camera's MJPEG stream:</label></td>
+                <td><input id="input_localmjpegurl" data-index="camera" style="width: 250px; margin-right: 3px"/></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_remotejpegurl">Remote URL to the JPEG snapshot:</label></td>
+                <td><input id="input_remotejpegurl" data-index="camera" style="width: 250px; margin-right: 3px"/></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_remotemjpegurl">Remote URL to the camera's MJPEG stream:</label></td>
+                <td><input id="input_remotemjpegurl" data-index="camera" style="width: 250px; margin-right: 3px"/></td>
+			</tr>
+			
+			</table>
+		</div>
+		<!--DevElectricitys-->
+		<div id="dialog-device-electricitys" class="translateT" style="display: none">
+			<table>				
+			<tr>
+				<td><label class="translate" for="input_watts">Watts:</label></td>
+                <td><input id="input_watts" data-index="electricitys" style="width: 250px; margin-right: 3px"/><button class="select-id-watts" data-index="electricitys" ></button></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_w_unit">Unit:</label></td>
+				<td><input id="input_w_unit" data-index="electricitys" style="width: 250px; margin-right: 3px"/></td>
+			</tr> 
+			<tr>
+				<td><label class="translate" for="input_w_graphable">Graphable:</label></td>
+				<td><select id="input_w_graphable" data-index="electricitys"  style="width: 70px; margin-right: 3px">
+                    <option value="true">YES</option>
+                    <option value="false" selected>NO</option>
+                </select></td>
+			</tr>   		
+			<tr>
+				<td><label class="translate" for="input_consototal">ConsoTotal:</label></td>
+                <td><input id="input_consototal" data-index="electricitys" style="width: 250px; margin-right: 3px"/><button class="select-id-consototal" data-index="electricitys" ></button></td>
+			</tr>
+			<tr>
+				<td><label class="translate" for="input_ct_unit">Unit:</label></td>
+				<td><input id="input_ct_unit" data-index="electricitys" style="width: 250px; margin-right: 3px"/></td>
+			</tr> 
+			<tr>
+				<td><label class="translate" for="input_ct_graphable">Graphable:</label></td>
+				<td><select id="input_ct_graphable" data-index="electricitys"  style="width: 70px; margin-right: 3px">
+                    <option value="true">YES</option>
+                    <option value="false" selected>NO</option>
+                </select></td>
+			</tr>   	
+			</table>
+		</div>
+		<!--FLOOD-->
+		<div id="dialog-device-alarms" class="translateT" style="display: none">
+			<table>
+				<tr>
+					<td><label class="translate" for="input_armable">Ability to arm the device:</label></td>
+					<td><select id="input_armable" data-index="alarms"  style="width: 70px; margin-right: 3px">
+                    <option value="1">YES</option>
+                    <option value="0">NO</option>
+                </select></td>
+				</tr>    
+				<tr>
+					<td><label class="translate" for="input_ackable">Ability to acknowledge alerts:</label></td>
+					<td><select id="input_ackable" data-index="alarms"  style="width: 70px; margin-right: 3px">
+                    <option value="1">YES</option>
+                    <option value="0">NO</option>
+                </select></td>
+				</tr>       				
+            <tr>
+                <td><label class="translate" for="input_armed">Armed:</label></td>
+                <td><input id="input_armed" data-index="alarms" style="width: 250px; margin-right: 3px"/><button class="select-id-armed" data-index="alarms" ></button></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_armed_v1">Value:</label></td>
+                <td>For 1 (On):<input id="input_armed_v1" data-index="alarms" style="width: 100px; margin-right: 3px"/>For 0 (Off):<input id="input_armed_v0" data-index="alarms" style="width: 100px; margin-right: 3px"/></td>
+            </tr>   
+			<tr>
+                <td><label class="translate" for="input_tripped">Tripped:</label></td>
+                <td><input id="input_tripped" data-index="alarms" style="width: 250px; margin-right: 3px"/><button class="select-id-tripped" data-index="alarms" ></button></td>
+            </tr>   
+            <tr>
+                <td><label class="translate" for="input_tripped_v1">Value:</label></td>
+                <td>For 1 (Tripped):<input id="input_tripped_v1" data-index="alarms" style="width: 100px; margin-right: 3px"/>For 0 (No):<input id="input_tripped_v0" data-index="alarms" style="width: 100px; margin-right: 3px"/></td>
+            </tr>  
+			<tr>
+                <td><label class="translate" for="input_time">Date of last trip (timestamp format):</label></td>
+                <td><input id="input_time" data-index="alarms" style="width: 250px; margin-right: 3px"/><button class="select-id-time" data-index="alarms" ></button></td>
+            </tr>   
+			</table>
+		</div>
+    </div>
+
+    <!--div id="dialog-select-members" style="display: none"></div-->
+    <div id="dialog-select-member"  style="display: none"></div>
+    <div class="toast" id="response"></div>
+
+    <script type="text/javascript" src="tab.js"></script>
+</body>
+</html>

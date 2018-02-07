@@ -1,0 +1,61 @@
+{
+    "common": {
+        "name": "imperihome",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial adapter",
+                "de": "Initiale Version",
+                "ru": "Первоначальный адаптер",
+                "pt": "Versão inicial",
+                "fr": "Version initiale",
+                "nl": "Eerste release"
+            }
+        },
+        "title": "ImperiHome API",
+        "desc": {
+            "en": "ImperiHome - implementation ImperiHome API"
+        },
+        "platform": "Javascript/Node.js",
+        "mode": "daemon",
+        "icon": "imperihome.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.imperihome/master/admin/imperihome.png",
+        "keywords": ["imperihome", "api"],
+        "readme": "https://github.com/ioBroker/ioBroker.imperihome/blob/master/README.md",
+        "loglevel": "info",
+		"localLink":                "/adapter/imperihome/tab.html",
+        "type": "script",
+        "noConfig":                 false,
+        "adminTab": {
+            "name":                 {"en": "ImperiHome"},
+            "singleton":            true,
+            "ignoreConfigUpdate":   true,
+            "fa-icon":              "fa-commenting-o"
+        }
+    },
+    "native": {
+        "devices": [
+
+        ],
+        "rooms": [
+
+        ],
+		"login":	"",
+		"password":	"",
+		"port":                     8088,
+        "auth":                     false,
+        "secure":                   false,
+        "bind":                     "0.0.0.0",
+        "certPublic":               "",
+        "certPrivate":              "",
+        "certChained":              "",
+        "defaultUser":              "admin",
+        "onlyAllowWhenUserIsOwner": false,
+        "webInstance":              "",
+
+        "leEnabled":                false,
+        "leUpdate":                 false,
+        "leCheckPort":              80
+    }
+}
