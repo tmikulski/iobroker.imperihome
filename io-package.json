@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "imperihome",
-        "version": "0.0.1",
+        "version": "0.0.2",
         "news": {
+            "0.0.2": {
+                "en": "change URL",
+                "de": "change URL",
+                "ru": "change URL",
+                "pt": "change URL",
+                "fr": "change URL",
+                "nl": "change URLe"
+            },
             "0.0.1": {
                 "en": "initial adapter",
                 "de": "Initiale Version",
