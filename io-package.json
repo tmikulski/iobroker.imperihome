@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "imperihome",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "news": {
+            "0.0.3": {
+                "en": "change icon",
+                "de": "change icon",
+                "ru": "change icon",
+                "pt": "change icon",
+                "fr": "change icon",
+                "nl": "change icon"
+            },
             "0.0.2": {
                 "en": "change URL",
                 "de": "change URL",
@@ -28,9 +36,9 @@
         "mode": "daemon",
         "icon": "imperihome.png",
         "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.imperihome/master/admin/imperihome.png",
+        "extIcon": "https://raw.githubusercontent.com/tmikulski/iobroker.imperihome/master/admin/imperihome.png",
         "keywords": ["imperihome", "api"],
-        "readme": "https://github.com/ioBroker/ioBroker.imperihome/blob/master/README.md",
+        "readme": "https://raw.githubusercontent.com/tmikulski/iobroker.imperihome/master/README.md",
         "loglevel": "info",
 		"localLink":                "/adapter/imperihome/tab.html",
         "type": "script",
@@ -51,7 +59,7 @@
         ],
 		"login":	"",
 		"password":	"",
-		"port":                     8088,
+		"port":                     8090,
         "auth":                     false,
         "secure":                   false,
         "bind":                     "0.0.0.0",
