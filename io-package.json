@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "imperihome",
-        "version": "0.0.3",
+        "version": "0.0.4",
         "news": {
+            "0.0.4": {
+                "en": "Fixed RGB",
+                "de": "Fixed RGB",
+                "ru": "Fixed RGB",
+                "pt": "Fixed RGB",
+                "fr": "Fixed RGB",
+                "nl": "Fixed RGB"
+            },
             "0.0.3": {
                 "en": "change icon",
                 "de": "change icon",
